@@ -2,6 +2,16 @@
 
 使用 React、TypeScript 和 Vite 实现的天气应用，完成地点搜索、当前天气、未来 7 天预报，以及加载、空结果和错误处理。项目面向 Frontend Take-Home Weather Application，优先保持职责清晰、状态可预测和实现范围适度。
 
+## 页面预览
+
+搜索地点与当前天气：
+
+![搜索地点与当前天气](docs/screenshot-search.png)
+
+当前天气详情与 7 天预报：
+
+![当前天气详情与 7 天预报](docs/screenshot-forecast.png)
+
 ## 快速运行
 
 需要 Node.js **22.12 或更新版本**（推荐 Node.js 24 LTS）与 npm。
