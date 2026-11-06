@@ -1,6 +1,13 @@
 import { useLanguage } from '../i18n/Language';
 import type { Location, Weather } from '../api/weather';
-import { condition, dateLabel, shortDateLabel, weekdayLabel, number } from '../lib/format';
+import {
+  condition,
+  dateLabel,
+  shortDateLabel,
+  weekdayLabel,
+  number,
+  utcOffsetLabel,
+} from '../lib/format';
 import { WeatherIcon } from './WeatherIcon';
 export function WeatherDashboard({ weather, location }: { weather: Weather; location: Location }) {
   const { t, locale } = useLanguage();
@@ -78,7 +85,7 @@ export function WeatherDashboard({ weather, location }: { weather: Weather; loca
           </div>
         </dl>
         <p className="details-note">
-          {t(location.name)} · {weather.timezone.replaceAll('_', ' ')}
+          {t(location.name)} · {t('当地时间')} · {utcOffsetLabel(weather.utc_offset_seconds)}
         </p>
       </section>
       <section className="forecast-section" aria-labelledby="forecast-title">

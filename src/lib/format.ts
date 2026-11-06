@@ -41,3 +41,9 @@ export function shortDateLabel(value: string, locale: Locale = 'zh-CN') {
     timeZone: 'UTC',
   }).format(new Date(`${value}T12:00:00Z`));
 }
+
+/** The provider resolves this UTC offset for the destination and current forecast. */
+export function utcOffsetLabel(seconds: number) {
+  const minutes = Math.round(Math.abs(seconds) / 60);
+  return `UTC${seconds >= 0 ? '+' : '-'}${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+}

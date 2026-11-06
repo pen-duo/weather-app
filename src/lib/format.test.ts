@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { condition, dateLabel, weekdayLabel, number } from './format';
+import { condition, dateLabel, weekdayLabel, number, utcOffsetLabel } from './format';
 describe('presentation semantics', () => {
   it('preserves zero and negative values and distinguishes missing values', () => {
     expect(number(0, '%')).toBe('0%');
@@ -18,4 +18,11 @@ describe('presentation semantics', () => {
     expect(condition(999).icon).toBe('unknown');
     expect(condition(null).label).toBe('天气状况暂缺');
   });
+});
+
+it('formats destination offsets without implying a different city', () => {
+  expect(utcOffsetLabel(28800)).toBe('UTC+08:00');
+  expect(utcOffsetLabel(-12600)).toBe('UTC-03:30');
+  expect(utcOffsetLabel(20700)).toBe('UTC+05:45');
+  expect(utcOffsetLabel(0)).toBe('UTC+00:00');
 });

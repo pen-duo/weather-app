@@ -25,21 +25,14 @@ export function LanguageMenu() {
   useLayoutEffect(() => {
     if (!open) return;
     function placeMenu() {
-      if (!trigger.current) return;
-      const anchor = trigger.current.getBoundingClientRect();
       const viewport = window.visualViewport;
-      const leftEdge = (viewport?.offsetLeft ?? 0) + 8;
-      const topEdge = (viewport?.offsetTop ?? 0) + 8;
-      const width = Math.min(176, (viewport?.width ?? window.innerWidth) - 16);
-      const rightEdge = leftEdge + (viewport?.width ?? window.innerWidth) - 16;
-      const bottomEdge = topEdge + (viewport?.height ?? window.innerHeight) - 16;
-      const below = Math.max(0, bottomEdge - anchor.bottom - 8);
-      const above = Math.max(0, anchor.top - 8 - topEdge);
-      const height = Math.min(192, Math.max(above, below));
-      const top = below >= height ? anchor.bottom + 8 : anchor.top - 8 - height;
+      const viewportWidth = viewport?.width ?? window.innerWidth;
+      const viewportHeight = viewport?.height ?? window.innerHeight;
+      const width = Math.min(200, viewportWidth - 16);
+      const height = Math.min(192, viewportHeight - 16);
       setPosition({
-        left: Math.max(leftEdge, Math.min(anchor.right - width, rightEdge - width)),
-        top: Math.max(topEdge, Math.min(top, bottomEdge - height)),
+        left: (viewport?.offsetLeft ?? 0) + (viewportWidth - width) / 2,
+        top: (viewport?.offsetTop ?? 0) + (viewportHeight - height) / 2,
         width,
         maxHeight: height,
       });

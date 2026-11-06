@@ -1,31 +1,53 @@
 import { useLanguage } from '../i18n/Language';
-import { useCallback, useRef, useState, type FormEvent } from 'react';
-import { searchLocations, type Location } from '../api/weather';
-import { useRequest } from '../hooks/useRequest';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { ApiError, searchLocations, type Location } from '../api/weather';
+import type { RequestState } from '../hooks/useRequest';
 import { Notice } from './Notice';
+
 export function LocationSearch({ onSelect }: { onSelect: (location: Location) => void }) {
   const { t, locale } = useLanguage();
   const [input, setInput] = useState('');
   const [query, setQuery] = useState('');
   const [validation, setValidation] = useState('');
+  const [state, setState] = useState<RequestState<Location | null>>({ status: 'idle' });
   const field = useRef<HTMLInputElement>(null);
-  const request = useCallback(
-    (signal: AbortSignal) => searchLocations(query, signal, locale === 'en' ? 'en' : 'zh'),
-    [query, locale],
-  );
-  const { state, retry } = useRequest(query ? request : null);
+  const activeRequest = useRef<AbortController | null>(null);
+  useEffect(() => () => activeRequest.current?.abort(), []);
+
+  async function search(value: string) {
+    activeRequest.current?.abort();
+    const controller = new AbortController();
+    activeRequest.current = controller;
+    setQuery(value);
+    setState({ status: 'loading' });
+    try {
+      const results = await searchLocations(
+        value,
+        controller.signal,
+        locale === 'en' ? 'en' : 'zh',
+      );
+      if (controller.signal.aborted || activeRequest.current !== controller) return;
+      const location = results[0] ?? null;
+      setState({ status: 'success', data: location });
+      if (location) onSelect(location);
+    } catch (error) {
+      if (controller.signal.aborted || activeRequest.current !== controller) return;
+      setState({
+        status: 'error',
+        message: error instanceof ApiError ? error.message : '加载失败，请重试。',
+      });
+    }
+  }
   function submit(event: FormEvent) {
     event.preventDefault();
     const next = input.trim();
     if ([...next].length < 2) {
-      setQuery('');
       setValidation('请输入至少 2 个字符的地点名称。');
       field.current?.focus();
       return;
     }
     setValidation('');
-    if (query === next) retry();
-    else setQuery(next);
+    void search(next);
   }
   return (
     <section className="search-panel" aria-label={t('地点搜索')}>
@@ -44,9 +66,10 @@ export function LocationSearch({ onSelect }: { onSelect: (location: Location) =>
             autoComplete="off"
             aria-describedby="search-hint"
             aria-invalid={!!validation}
-            onChange={(e) => {
-              setInput(e.target.value);
-              setQuery('');
+            onChange={(event) => {
+              activeRequest.current?.abort();
+              setInput(event.target.value);
+              setState({ status: 'idle' });
               setValidation('');
             }}
           />
@@ -56,53 +79,23 @@ export function LocationSearch({ onSelect }: { onSelect: (location: Location) =>
           </button>
         </div>
         <p id="search-hint" className={validation ? 'validation' : 'hint'}>
-          {t(validation || '输入城市名后搜索，再选择对应的地区。支持中文和英文。')}
+          {t(
+            validation ||
+              '输入城市名后搜索，直接显示首个匹配地点的天气；同名城市可加地区缩小范围。',
+          )}
         </p>
       </form>
       <div aria-live="polite" aria-atomic="true" className="sr-only">
-        {state.status === 'loading'
-          ? t('正在搜索地点')
-          : state.status === 'success'
-            ? t('找到 {count} 个地点', { count: state.data.length })
-            : ''}
+        {state.status === 'loading' ? t('正在搜索地点') : ''}
       </div>
-      {state.status === 'error' && <Notice message={state.message} onRetry={retry} />}
-      {state.status === 'success' &&
-        (state.data.length === 0 ? (
-          <div className="empty-search">
-            {t('没有找到“{query}”。请检查拼写，或尝试英文城市名。', { query })}
-          </div>
-        ) : (
-          <div className="search-results">
-            <p className="eyebrow">
-              {t('选择地点 · {count} 个结果', { count: state.data.length })}
-            </p>
-            <ul>
-              {state.data.map((location) => (
-                <li key={location.id}>
-                  <button
-                    onClick={() => {
-                      setInput(location.name);
-                      setQuery('');
-                      onSelect(location);
-                    }}
-                  >
-                    <span>
-                      <strong>{location.name}</strong>
-                      <small>
-                        {[...new Set([location.admin1, location.country].filter(Boolean))].join(
-                          ' · ',
-                        ) || t('地区信息暂缺')}{' '}
-                        · {location.latitude.toFixed(2)}, {location.longitude.toFixed(2)}
-                      </small>
-                    </span>
-                    <span aria-hidden="true">↗</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+      {state.status === 'error' && (
+        <Notice message={state.message} onRetry={() => void search(query)} />
+      )}
+      {state.status === 'success' && state.data === null && (
+        <div className="empty-search">
+          {t('没有找到“{query}”。请检查拼写，或尝试英文城市名。', { query })}
+        </div>
+      )}
     </section>
   );
 }

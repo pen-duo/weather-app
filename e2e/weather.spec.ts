@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { weatherFixture } from '../src/test/fixtures';
-test('search → disambiguate → weather, retry and responsive layout', async ({ page }) => {
+test('search → automatic weather update, retry and responsive layout', async ({ page }) => {
   let fail = false;
   await page.route('https://api.open-meteo.com/**', (route) =>
     route.fulfill({ status: fail ? 503 : 200, json: weatherFixture }),
@@ -34,9 +34,10 @@ test('search → disambiguate → weather, retry and responsive layout', async (
   await expect(page.locator('.forecast-card')).toHaveCount(7);
   await page.getByLabel('想了解哪里的天气？').fill('London');
   await page.getByLabel('想了解哪里的天气？').press('Enter');
-  await page.getByRole('button', { name: /London England/ }).click();
+  await expect(page.locator('.search-results')).toHaveCount(0);
   await expect(page.getByRole('heading', { name: /London.*英国/ })).toBeVisible();
   await expect(page.locator('.temperature')).toHaveText('24°');
+  await expect(page.locator('.details-note')).toContainText('当地时间 · UTC+08:00');
   fail = true;
   await page.getByRole('button', { name: '刷新天气' }).click();
   await expect(page.getByRole('alert')).toContainText('天气服务暂时不可用');
@@ -121,7 +122,7 @@ async function chooseLanguage(page: Page, label: string) {
   await page.getByRole('menuitemradio', { name: label, exact: true }).click();
 }
 
-test('language menu stays inside narrow and short viewports and supports keyboard dismissal', async ({
+test('language menu stays centered inside narrow and short viewports and supports keyboard dismissal', async ({
   page,
 }) => {
   await page.route('https://api.open-meteo.com/**', (route) =>
@@ -143,6 +144,8 @@ test('language menu stays inside narrow and short viewports and supports keyboar
     expect(bounds!.y).toBeGreaterThanOrEqual(8);
     expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width - 8);
     expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(viewport.height - 8);
+    expect(Math.abs(bounds!.x + bounds!.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(1);
+    expect(Math.abs(bounds!.y + bounds!.height / 2 - viewport.height / 2)).toBeLessThanOrEqual(1);
     await page.keyboard.press('End');
     await expect(page.getByRole('menuitemradio', { name: 'English' })).toBeFocused();
     await page.keyboard.press('Escape');

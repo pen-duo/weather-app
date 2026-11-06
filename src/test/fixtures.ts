@@ -1,5 +1,6 @@
 export const weatherFixture = {
   timezone: 'Asia/Hong_Kong',
+  utc_offset_seconds: 28800,
   current: {
     time: '2026-11-05T18:15',
     temperature_2m: 24.2,

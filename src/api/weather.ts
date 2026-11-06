@@ -27,6 +27,7 @@ const locationSchema = z.object({
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const weatherSchema = z.object({
   timezone: z.string().min(1),
+  utc_offset_seconds: z.number().int().min(-86400).max(86400),
   current: z.object({
     time: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/),
     temperature_2m: measurement,

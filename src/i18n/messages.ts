@@ -124,10 +124,10 @@ export const messages = {
     yue: '請輸入最少 2 個字嘅地點名。',
     en: 'Enter a location name with at least 2 characters.',
   },
-  '输入城市名后搜索，再选择对应的地区。支持中文和英文。': {
-    'zh-TW': '輸入城市名稱搜尋，再選擇對應地區。支援中文和英文。',
-    yue: '輸入城市名，再揀返啱嘅地區。中文英文都得。',
-    en: 'Search for a city, then choose the matching region. Chinese and English names are supported.',
+  '输入城市名后搜索，直接显示首个匹配地点的天气；同名城市可加地区缩小范围。': {
+    'zh-TW': '輸入城市名稱搜尋，直接顯示首個符合地點的天氣；同名城市可加地區縮小範圍。',
+    yue: '輸入城市名搜尋，即刻顯示第一個符合地點嘅天氣；同名城市可以加埋地區再搵。',
+    en: 'Search a city to show weather for the first match. Add a region to narrow down cities with the same name.',
   },
   正在搜索地点: {
     'zh-TW': '正在搜尋地點',
